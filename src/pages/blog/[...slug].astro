@@ -1,20 +1,25 @@
 ---
-import { type CollectionEntry, getCollection, render } from 'astro:content';
+import { PortableText } from 'astro-portabletext';
 import BlogPost from '../../layouts/BlogPost.astro';
+import { getNoticia, getNoticias, urlFor } from '../../lib/sanity';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
+	const posts = await getNoticias();
+	return posts.map((post: any) => ({ params: { slug: post.slug } }));
 }
-type Props = CollectionEntry<'blog'>;
 
-const post = Astro.props;
-const { Content } = await render(post);
+const { slug } = Astro.params;
+const post = await getNoticia(slug as string);
 ---
 
-<BlogPost {...post.data}>
-	<Content />
+<BlogPost
+	title={post.title}
+	description={post.description}
+	pubDate={new Date(post.pubDate)}
+	heroImageUrl={post.heroImage
+		? urlFor(post.heroImage).width(1020).height(510).auto('format').url()
+		: undefined}
+	heroImageAlt={post.heroImage?.alt ?? ''}
+>
+	<PortableText value={post.body ?? []} />
 </BlogPost>

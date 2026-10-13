@@ -1,16 +1,19 @@
 ---
-import { Image } from 'astro:assets';
-import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = Omit<CollectionEntry<'blog'>['data'], 'pubDate' | 'category'> & {
+interface Props {
+	title: string;
+	description: string;
 	pubDate?: Date;
-};
+	updatedDate?: Date;
+	heroImageUrl?: string;
+	heroImageAlt?: string;
+}
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImageUrl, heroImageAlt } = Astro.props;
 ---
 
 <html lang="pt-BR">
@@ -62,7 +65,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<main>
 			<article>
 				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
+					{heroImageUrl && <img width={1020} height={510} src={heroImageUrl} alt={heroImageAlt ?? ''} />}
 				</div>
 				<div class="prose">
 					<div class="title">
@@ -71,7 +74,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 								<FormattedDate date={pubDate} />
 								{updatedDate && (
 									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
+										Atualizado em <FormattedDate date={updatedDate} />
 									</div>
 								)}
 							</div>

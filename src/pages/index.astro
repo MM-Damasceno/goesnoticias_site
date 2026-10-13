@@ -1,15 +1,12 @@
 ---
-import { Image } from 'astro:assets';
-import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { CATEGORIAS, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getNoticias, urlFor } from '../lib/sanity';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getNoticias();
 const destaque = posts[0];
 const recentes = posts.slice(1, 7);
 ---
@@ -87,14 +84,17 @@ const recentes = posts.slice(1, 7);
 		<Header />
 		<main>
 			{destaque ? (
-				<a class="destaque" href={`/blog/${destaque.id}/`}>
-					{destaque.data.heroImage && (
-						<Image width={960} height={480} src={destaque.data.heroImage} alt="" />
+				<a class="destaque" href={`/blog/${destaque.slug}/`}>
+					{destaque.heroImage && (
+						<img
+							src={urlFor(destaque.heroImage).width(960).height(480).auto('format').url()}
+							alt={destaque.heroImage.alt ?? ''}
+						/>
 					)}
-					<p class="rotulo">Destaque · {CATEGORIAS[destaque.data.category]}</p>
-					<h1>{destaque.data.title}</h1>
-					<p class="resumo">{destaque.data.description}</p>
-					<p class="data"><FormattedDate date={destaque.data.pubDate} /></p>
+					<p class="rotulo">Destaque · {CATEGORIAS[destaque.category as keyof typeof CATEGORIAS]}</p>
+					<h1>{destaque.title}</h1>
+					<p class="resumo">{destaque.description}</p>
+					<p class="data"><FormattedDate date={new Date(destaque.pubDate)} /></p>
 				</a>
 			) : (
 				<p>Ainda não há notícias publicadas.</p>
@@ -104,15 +104,18 @@ const recentes = posts.slice(1, 7);
 				<section>
 					<h2>Últimas notícias</h2>
 					<ul class="grade">
-						{recentes.map((post) => (
+						{recentes.map((post: any) => (
 							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={480} height={270} src={post.data.heroImage} alt="" />
+								<a href={`/blog/${post.slug}/`}>
+									{post.heroImage && (
+										<img
+											src={urlFor(post.heroImage).width(480).height(270).auto('format').url()}
+											alt={post.heroImage.alt ?? ''}
+										/>
 									)}
-									<p class="rotulo">{CATEGORIAS[post.data.category]}</p>
-									<h3>{post.data.title}</h3>
-									<p class="data"><FormattedDate date={post.data.pubDate} /></p>
+									<p class="rotulo">{CATEGORIAS[post.category as keyof typeof CATEGORIAS]}</p>
+									<h3>{post.title}</h3>
+									<p class="data"><FormattedDate date={new Date(post.pubDate)} /></p>
 								</a>
 							</li>
 						))}

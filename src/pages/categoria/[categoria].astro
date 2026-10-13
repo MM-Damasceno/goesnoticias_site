@@ -1,11 +1,10 @@
 ---
-import { Image } from 'astro:assets';
-import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { CATEGORIAS, SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { CATEGORIAS, SITE_TITLE } from '../../consts';
+import { getNoticiasPorCategoria, urlFor } from '../../lib/sanity';
 
 export function getStaticPaths() {
 	return Object.keys(CATEGORIAS).map((slug) => ({ params: { categoria: slug } }));
@@ -13,16 +12,13 @@ export function getStaticPaths() {
 
 const { categoria } = Astro.params;
 const nome = CATEGORIAS[categoria as keyof typeof CATEGORIAS];
-
-const posts = (await getCollection('blog', ({ data }) => data.category === categoria)).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const posts = await getNoticiasPorCategoria(categoria as string);
 ---
 
 <!doctype html>
 <html lang="pt-BR">
 	<head>
-		<BaseHead title={`${nome} | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<BaseHead title={`${nome} | ${SITE_TITLE}`} description={`${nome} do Góes Notícias`} />
 		<style>
 			main {
 				width: 960px;
@@ -65,14 +61,17 @@ const posts = (await getCollection('blog', ({ data }) => data.category === categ
 			<h1>{nome}</h1>
 			{posts.length > 0 ? (
 				<ul class="grade">
-					{posts.map((post) => (
+					{posts.map((post: any) => (
 						<li>
-							<a href={`/blog/${post.id}/`}>
-								{post.data.heroImage && (
-									<Image width={480} height={270} src={post.data.heroImage} alt="" />
+							<a href={`/blog/${post.slug}/`}>
+								{post.heroImage && (
+									<img
+										src={urlFor(post.heroImage).width(480).height(270).auto('format').url()}
+										alt={post.heroImage.alt ?? ''}
+									/>
 								)}
-								<h3>{post.data.title}</h3>
-								<p class="data"><FormattedDate date={post.data.pubDate} /></p>
+								<h3>{post.title}</h3>
+								<p class="data"><FormattedDate date={new Date(post.pubDate)} /></p>
 							</a>
 						</li>
 					))}
